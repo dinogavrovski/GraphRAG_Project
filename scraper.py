@@ -43,10 +43,19 @@ for page in range(1, 51):  # scrape 50 pages
         location = location_tag.get_text(strip=True) if location_tag else ""
 
         # Image URL
-        img_tag = ad.find("div", class_="ad-image-div").find("img")
-        image_url = img_tag["src"] if img_tag else ""
+        img_div = ad.find("div", class_="ad-image-div")
+        nested_div = img_div.find("div", class_="ad-image") if img_div else None
 
-        writer.writerow([title, year, mileage, power, price, location, image_url])
+        img_url = ""
+
+        if nested_div:
+            style = nested_div.get("style", "")
+            if "url(" in style:
+                start = style.find("url(") + 4
+                end = style.find(")", start)
+                img_url = style[start:end].strip("'\"")
+
+        writer.writerow([title, year, mileage, power, price, location, img_url])
 
     time.sleep(1)  # polite delay
 
