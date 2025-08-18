@@ -16,12 +16,20 @@ def clean_phone(phone: str):
     if not phone:
         return ""
 
-    phone = re.sub(r"[^\d+]", "", phone)
+    phone = re.sub(r"[^\d+]", " ", phone)
+
+    parts = phone.split()
+    if not parts:
+        return ""
+
+    phone = parts[0]
 
     if phone.startswith("+389"):
         phone = "0" + phone[4:]
     elif phone.startswith("389"):
         phone = "0" + phone[3:]
+
+    phone = re.sub(r"\D", "", phone) if not phone.startswith("+") else phone
 
     if re.fullmatch(r"07\d{7}", phone):
         return phone
@@ -61,6 +69,10 @@ def get_ad_details(ad_url):
                 attributes[key] = "Other"
             if value == "Hedgeback":
                 attributes[key] = "Hatchback"
+            if value == "Petrol / Gas":
+                attributes[key] = "Gasoline"
+            if value == "SUVs - SUVs":
+                attributes[key] = "SUV"
 
         attributes["Link"] = ad_url
 
