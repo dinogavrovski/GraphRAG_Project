@@ -37,8 +37,14 @@ def get_ad_details(ad_url):
         attributes["Phone"] = phone
 
         for key, value in attributes.items():
+
+            if value=="The rest":
+                attributes[key] = "Other"
+
             if value == "Hedgeback":
                 attributes[key] = "Hatchback"
+
+        attributes["Link"] = ad_url
 
         return attributes
 
@@ -73,7 +79,7 @@ for page in range(1, 2):
         if ad_url:
             ad_data = get_ad_details(ad_url)
             ad_data["Image_URL"] = img_url
-            time.sleep(0.5)  # polite delay
+            time.sleep(0.5)
 
         if writer is None and ad_data:
             writer = csv.DictWriter(csv_file, fieldnames=ad_data.keys())
