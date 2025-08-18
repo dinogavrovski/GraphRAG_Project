@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import time
+import re
 
 BASE_URL = "http://reklama5.com/Search?city=&cat=24&q=&sell=0&sell=1&buy=0&buy=1&trade=0&trade=1&includeOld=0&includeOld=1&includeNew=0&includeNew=1&cargoReady=0&DDVIncluded=0&private=0&company=0&page={}&SortByPrice=0&zz=1&pageView=1"
 DETAIL_BASE = "http://reklama5.com"
@@ -10,6 +11,25 @@ headers = {"User-Agent": "Mozilla/5.0"}
 
 csv_file = open("cars_reklama5.csv", "w", newline="", encoding="utf-8")
 writer = None
+
+def clean_phone(phone: str):
+    if not phone:
+        return ""
+
+    phone = re.sub(r"[^\d+]", "", phone)
+
+    if phone.startswith("+389"):
+        phone = "0" + phone[4:]
+    elif phone.startswith("389"):
+        phone = "0" + phone[3:]
+
+    if re.fullmatch(r"07\d{7}", phone):
+        return phone
+
+    if phone.startswith("+"):
+        return phone
+
+    return phone
 
 def get_ad_details(ad_url):
     try:
@@ -34,13 +54,11 @@ def get_ad_details(ad_url):
 
         phone_tag = soup.select_one("div.card-body h6")
         phone = phone_tag.get_text(strip=True) if phone_tag else ""
-        attributes["Phone"] = phone
+        attributes["Phone"] = clean_phone(phone)
 
         for key, value in attributes.items():
-
-            if value=="The rest":
+            if value == "The rest":
                 attributes[key] = "Other"
-
             if value == "Hedgeback":
                 attributes[key] = "Hatchback"
 
