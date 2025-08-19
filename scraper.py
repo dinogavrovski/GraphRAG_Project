@@ -39,9 +39,9 @@ def clean_phone(phone: str):
 
     return phone
 
-def get_ad_details(ad_url):
+def get_ad_details(session, ad_url):
     try:
-        response = requests.get(ad_url, headers=headers)
+        response = session.get(ad_url, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
 
 
@@ -82,43 +82,45 @@ def get_ad_details(ad_url):
         print(f"Error scraping {ad_url}: {e}")
         return {}
 
-for page in range(1, 2):
-    print(f"Scraping page {page}...")
-    url = BASE_URL.format(page)
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
+with requests.Session() as session:
+    session.headers.update(headers)
 
-    ads = soup.find_all("div", class_="row ad-top-div")
+    for page in range(1, 101):
+        print(f"Scraping page {page}...")
+        url = BASE_URL.format(page)
+        response = session.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
 
-    for ad in ads:
+        ads = soup.find_all("div", class_="row ad-top-div")
 
-        img_div = ad.find("div", class_="ad-image-div")
-        nested_div = img_div.find("div", class_="ad-image") if img_div else None
-        img_url = ""
-        if nested_div:
-            style = nested_div.get("style", "")
-            if "url(" in style:
-                start = style.find("url(") + 4
-                end = style.find(")", start)
-                img_url = style[start:end].strip("'\"")
+        for ad in ads:
+            img_div = ad.find("div", class_="ad-image-div")
+            nested_div = img_div.find("div", class_="ad-image") if img_div else None
+            img_url = ""
+            if nested_div:
+                style = nested_div.get("style", "")
+                if "url(" in style:
+                    start = style.find("url(") + 4
+                    end = style.find(")", start)
+                    img_url = style[start:end].strip("'\"")
 
-        link_tag = ad.find("a", href=True)
-        ad_url = DETAIL_BASE + link_tag["href"] if link_tag else ""
+            link_tag = ad.find("a", href=True)
+            ad_url = DETAIL_BASE + link_tag["href"] if link_tag else ""
 
-        ad_data = {}
-        if ad_url:
-            ad_data = get_ad_details(ad_url)
-            ad_data["Image_URL"] = img_url
-            time.sleep(0.5)
+            ad_data = {}
+            if ad_url:
+                ad_data = get_ad_details(session, ad_url)
+                ad_data["Image_URL"] = img_url
+                time.sleep(0.3)
 
-        if writer is None and ad_data:
-            writer = csv.DictWriter(csv_file, fieldnames=ad_data.keys())
-            writer.writeheader()
+            if writer is None and ad_data:
+                writer = csv.DictWriter(csv_file, fieldnames=ad_data.keys())
+                writer.writeheader()
 
-        if writer and ad_data:
-            writer.writerow(ad_data)
+            if writer and ad_data:
+                writer.writerow(ad_data)
 
-    time.sleep(1)
+        time.sleep(0.3)
 
 csv_file.close()
 print("Scraping finished! Data saved to cars_reklama5.csv")
