@@ -74,6 +74,11 @@ def get_ad_details(session, ad_url):
             if value == "SUVs - SUVs":
                 attributes[key] = "SUV"
 
+            if value == "Хибрид ( Бензин / Електро )":
+                attributes[key] = "Hybrid ( Gasoline / Electric )"
+            if value == "Хибрид ( Дизел / Електро )":
+                attributes[key] = "Hybrid ( Diesel / Electric )"
+
         attributes["Link"] = ad_url
 
         return attributes
