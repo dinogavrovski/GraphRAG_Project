@@ -37,6 +37,9 @@ def clean_phone(phone: str):
     if phone.startswith("+"):
         return phone
 
+    if phone.length < 9 or phone.length > 12:
+        return ""
+
     return phone
 
 def get_ad_details(session, ad_url):
