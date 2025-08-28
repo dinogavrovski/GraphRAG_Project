@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from backend.database import get_driver
 from backend.config import NEO4J_DATABASE
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+
+from backend.relaxation import search_until_match
 
 load_dotenv()
 app = FastAPI(title="Car GraphRAG API")
@@ -13,7 +15,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 @app.post("/search")
-def natural_language_search(query: str):
+def natural_language_search(query: str, relax: bool = Query(False)):
     prompt = f"""
     You are a Cypher expert. Translate this request into a Cypher query for Neo4j:
     "{query}"
@@ -63,12 +65,21 @@ def natural_language_search(query: str):
     )
 
     cypher_query = response.choices[0].message.content.strip()
+    print("Entered relax")
 
     with driver.session(database=NEO4J_DATABASE) as session:
         result = session.run(cypher_query)
         data = [record.data() for record in result]
+        applied_steps = []
 
-    return {"query": cypher_query, "results": data}
+        if not data and relax:
+            data, applied_steps = search_until_match(cypher_query, session)
+
+    return {
+        "query": cypher_query,
+        "results": data,
+        "relaxation_steps": applied_steps
+    }
 
 @app.get("/")
 def root():
