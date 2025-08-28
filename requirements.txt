@@ -1,0 +1,18 @@
+# When cloning the repo write `pip install -r requirements.txt` in the console to install all dependencies
+
+# Core functionality
+requests==2.32.4
+beautifulsoup4==4.13.4
+fastapi==0.116.1
+neo4j==5.28.2
+openai==1.102.0
+python-dotenv==1.1.1
+
+# FastAPI runtime dependencies
+uvicorn==0.35.0
+pydantic==2.11.7
+anyio==4.10.0
+starlette==0.47.3
+
+# Utility
+tqdm==4.67.1
