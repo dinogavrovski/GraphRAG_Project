@@ -11,6 +11,23 @@ app = FastAPI(title="Car GraphRAG API")
 driver = get_driver()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+brand_models = []
+brand_models_knowledge = ""
+
+@app.on_event("startup")
+def load_brand_models():
+    global brand_models, brand_models_knowledge
+
+    with driver.session(database=NEO4J_DATABASE) as session:
+        result = session.run("""
+            MATCH (c:Car)-[:BELONGS_TO]->(b:Brand)
+            RETURN DISTINCT b.name AS brand, c.model AS model
+        """)
+        brand_models = [{"brand": r["brand"], "model": r["model"]} for r in result]
+    brand_models_knowledge = "\n".join(
+        [f"- {bm['brand']} {bm['model']}" for bm in brand_models]
+    )
+    print(f"Loaded {len(brand_models)} brand-model pairs at startup")
 
 @app.post("/search")
 def natural_language_search(query: str):
@@ -25,6 +42,9 @@ def natural_language_search(query: str):
     Relationships:
     - (:Car)-[:BELONGS_TO]->(:Brand)
     - (:Car)-[:IS_SOLD_BY]->(:Seller)
+    
+    Here is a list of potential valid brand-model pairs:
+    {brand_models_knowledge}
     
     Rules:
 
