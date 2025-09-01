@@ -1,70 +1,100 @@
 import re
 
-def relax_numeric_ranges(cypher_query, percentage_increase=10):
-    """Expands BETWEEN ranges by a percentage."""
-    def expand(match):
-        min_val = int(match.group(1))
-        max_val = int(match.group(2))
-        delta = int((max_val - min_val) * (percentage_increase / 100))
-        new_min = max(0, min_val - delta)
-        new_max = max_val + delta
-        return f"BETWEEN {new_min} AND {new_max}"
-    return re.sub(r'BETWEEN (\d+) AND (\d+)', expand, cypher_query)
+MAX_NUMERIC_RELAX = 30  # Maximum numeric relaxation in %
+NUMERIC_FIELDS = ['kilometers']  # Only kilometers relax, year is strict
+CATEGORICAL_FILTERS = ['c.color =', 'c.gearbox =', 'c.fuel =', 'c.car_body =']
 
-def drop_least_important_filters(cypher_query):
-    filters = ['c.color =', 'c.gearbox =', 'c.fuel =', 'c.car_body =']
-    for f in filters:
-        if f in cypher_query:
-            cypher_query = re.sub(r'\s*' + re.escape(f) + r'.*?\n', '', cypher_query)
-            return cypher_query, f"Filter dropped: {f}"
+def relax_numeric_fields(cypher_query, field='kilometers', pct=10):
+    """Relax a numeric field by ±pct%. Year is strict and not included here."""
+    # Relax >=
+    pattern_gte = fr"({field})\s*>=\s*(\d+)"
+    def expand_gte(m):
+        val = int(m.group(2))
+        delta = max(1, int(val * pct / 100))
+        return f"{m.group(1)} >= {val - delta}"
+    cypher_query, n = re.subn(pattern_gte, expand_gte, cypher_query)
+    if n > 0:
+        return cypher_query, f"{field} relaxed (≥ shifted down {pct}%)"
+
+    # Relax <=
+    pattern_lte = fr"({field})\s*<=\s*(\d+)"
+    def expand_lte(m):
+        val = int(m.group(2))
+        delta = max(1, int(val * pct / 100))
+        return f"{m.group(1)} <= {val + delta}"
+    cypher_query, n = re.subn(pattern_lte, expand_lte, cypher_query)
+    if n > 0:
+        return cypher_query, f"{field} relaxed (≤ shifted up {pct}%)"
+
+    # Relax exact equality
+    pattern_eq = fr"({field})\s*=\s*(\d+)"
+    def expand_eq(m):
+        val = int(m.group(2))
+        delta = max(1, int(val * pct / 100))
+        low = max(0, val - delta)
+        high = val + delta
+        return f"{m.group(1)} >= {low} AND {m.group(1)} <= {high}"
+    cypher_query, n = re.subn(pattern_eq, expand_eq, cypher_query)
+    if n > 0:
+        return cypher_query, f"{field} range expanded by ±{pct}%"
+
     return cypher_query, None
 
-def apply_fuzzy_matching(cypher_query):
-    cypher_query = re.sub(r"c\.color = '(\w+)'", r"c.color CONTAINS '\1'", cypher_query)
-    cypher_query = re.sub(r"c\.fuel = '(\w+)'", r"c.fuel CONTAINS '\1'", cypher_query)
-    cypher_query = re.sub(r"c\.gearbox = '(\w+)'", r"c.gearbox CONTAINS '\1'", cypher_query)
-    cypher_query = re.sub(r"c\.car_body = '(\w+)'", r"c.car_body CONTAINS '\1'", cypher_query)
-    return cypher_query, "Fuzzy matching applied"
+def drop_one_filter(cypher_query):
+    """Drop the first categorical filter found."""
+    for f in CATEGORICAL_FILTERS:
+        pattern = r'\s*' + re.escape(f) + r"\s*['\"]?([^'\"]+)['\"]?\s*(AND)?"
+        match = re.search(pattern, cypher_query)
+        if match:
+            value = match.group(1)
+            cypher_query = re.sub(pattern, '', cypher_query, count=1)
+            return cypher_query, f"Filter dropped: {f} '{value}'"
+    return cypher_query, None
 
 def sanitize_query(query: str) -> str:
+    """Clean up duplicate ANDs and whitespace."""
     query = re.sub(r'\bAND\s+AND\b', 'AND', query)
     query = re.sub(r'\s+AND\s*$', '', query)
     query = re.sub(r'\s+', ' ', query)
     return query.strip()
 
-def search_until_match(cypher_query, session, numeric_fields=['kilometers'], max_iterations=20, step_pct=5):
-    """
-    Incrementally relax numeric ranges until at least one match is found.
-    - numeric_fields: list of fields to relax (e.g., ['kilometers', 'engine_power'])
-    - step_pct: % increase per iteration
-    """
+def search_until_match(cypher_query, session, max_iterations=20, step_pct=10):
+    """Relax numeric fields, then drop filters until results are found."""
+    relaxed_query = cypher_query
     applied_steps = []
     iteration = 0
-    relaxed_query = cypher_query
+    pct = step_pct
+    filter_index = 0  # Which filter to drop next
 
     while iteration < max_iterations:
         relaxed_query = sanitize_query(relaxed_query)
         result = session.run(relaxed_query)
         data = [r.data() for r in result]
+
         if data:
             return data, applied_steps
 
-        # Relax numeric ranges
-        for pct in numeric_fields:
-            relaxed_query = relax_numeric_ranges(relaxed_query, step_pct)
-            applied_steps.append(f"{pct} relaxed by ±{step_pct}% (iteration {iteration+1})")
+        # Step 1: Relax numeric fields if below MAX_NUMERIC_RELAX
+        if pct <= MAX_NUMERIC_RELAX:
+            for field in NUMERIC_FIELDS:
+                relaxed_query, step_info = relax_numeric_fields(relaxed_query, field=field, pct=pct)
+                if step_info:
+                    applied_steps.append(step_info + f" (iteration {iteration+1})")
+                    pct += 5
+                    iteration += 1
+                    continue
+            #continue  # retry query after numeric relaxation
 
-        # Drop filters progressively if still empty
-        relaxed_query, step_info = drop_least_important_filters(relaxed_query)
+        # Step 2: Drop one categorical filter per iteration
+        relaxed_query, step_info = drop_one_filter(relaxed_query)
         if step_info:
-            applied_steps.append(step_info)
+            relaxed_query, _ =relax_numeric_fields(relaxed_query, field='kilometers', pct=pct-5)
+            applied_steps.append(step_info + f" (iteration {iteration+1})")
+            iteration += 1
+            continue  # retry query after dropping filter
 
-        # Apply fuzzy matching if still empty
-        relaxed_query, step_info = apply_fuzzy_matching(relaxed_query)
-        applied_steps.append(step_info)
-
+        # Step 3: If no numeric or filters left, exit
         iteration += 1
-        step_pct += 5  # progressively increase the relaxation %
+        break
 
-    # Return whatever we have (could still be empty)
-    return data, applied_steps
+    return [], applied_steps

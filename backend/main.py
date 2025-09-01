@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+
 from backend.database import get_driver
 from backend.config import NEO4J_DATABASE
 from openai import OpenAI
@@ -45,18 +46,18 @@ def natural_language_search(query: str, relax: bool = Query(False)):
     12. If the user says "power", "horsepower", "hp", or "kw", map it to the property `engine_power`.
     13. If the user says "gear", "transmission", or "gearbox", or if the user says "manual", "automatic" or "semi-automatic", map it to the property `gearbox`.
     14. If the user says "registration till", "registered until", "valid until", or "expires", map it to the property `registered_to`.
-    15. If the user specifies a numeric value for kilometers (e.g., "200000 kilometers"), do not assume exact equality. 
+    15. Keep the year filter strict if provided (>= or =), but other numeric fields (like kilometers) can be relaxed.
+    16. If the user specifies a numeric value for kilometers (e.g., "200000 kilometers"), do not assume exact equality. 
      Instead:
-     - If they say "about", "around", or give a plain number, use a ±10% range (e.g., 200000 → BETWEEN 180000 AND 220000). If there are no matches then increase that range by 5% and do ±15%.
+     - If they say "about", "around", or give a plain number, use a ±10% range (e.g., 200000 → c.kilometers >= 180000 AND c.kilometers <= 220000).
+     - If no results are found, incrementally relax numeric ranges (±10%, ±15%, ±20%, up to ±30% max).
+     - If still no results, remove less important filters like color, gearbox, fuel, car_body one by one.
+     - Apply fuzzy matching for text fields last.
+     - Always prioritize exact brand/model matches.
+     - Return a valid Cypher query and include a comment describing what relaxation steps were applied.
      - If they say "less than" / "under", use a strict upper bound (< value).
      - If they say "more than" / "above" / "over", use a strict lower bound (> value).
      - If no explicit range word is given, default to approximate range matching.
-    16. If no cars match all criteria exactly:
-    - Relax numeric ranges step by step (kilometers, year, engine_power) ±10% → ±15% → ±20%.
-    - Relax less critical categorical filters (color, gearbox, fuel, car_body) one by one.
-    - Always prioritize exact brand/model matches.
-    - Return the top 10 closest results, sorted by relevance (closest kilometers first, then year, then engine_power, etc.).
-    - Include a comment in the Cypher query as a string showing what relaxation steps were applied, e.g., "// kilometers ±15%, color filter dropped".
     """
 
     response = client.chat.completions.create(
@@ -65,38 +66,16 @@ def natural_language_search(query: str, relax: bool = Query(False)):
     )
 
     cypher_query = response.choices[0].message.content.strip()
-    print("Entered relax")
+    applied_steps = []
 
     with driver.session(database=NEO4J_DATABASE) as session:
         result = session.run(cypher_query)
         data = [record.data() for record in result]
-        applied_steps = []
-
         if not data and relax:
             data, applied_steps = search_until_match(cypher_query, session)
 
     return {
         "query": cypher_query,
         "results": data,
-        "relaxation_steps": applied_steps
+        "relaxations": applied_steps
     }
-
-@app.get("/")
-def root():
-    return {"message": "Hello World"}
-
-@app.get("/brands")
-def get_brands():
-    with driver.session(database=NEO4J_DATABASE) as session:
-        result = session.run("MATCH (b:Brand) RETURN b.name AS name LIMIT 10")
-        return {"brands": [r["name"] for r in result]}
-
-@app.get("/cars")
-def get_cars():
-    with driver.session(database=NEO4J_DATABASE) as session:
-        result = session.run("""
-            MATCH (c:Car)-[:BELONGS_TO]-(b:Brand)
-            RETURN b.name AS brand, c.model AS model, c.year AS year, c.kilometers AS kilometers, c.color AS color
-            LIMIT 10
-        """)
-        return {"cars": [{"brand": r["brand"], "model": r["model"], "year": r["year"], "color":r["color"], "kilometers": r["kilometers"]} for r in result]}
