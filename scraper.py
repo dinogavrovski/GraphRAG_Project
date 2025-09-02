@@ -37,7 +37,7 @@ def clean_phone(phone: str):
     if phone.startswith("+"):
         return phone
 
-    if phone.length < 9 or phone.length > 12:
+    if len(phone) < 9 or len(phone) > 12:
         return ""
 
     return phone
@@ -102,6 +102,20 @@ with requests.Session() as session:
         ads = soup.find_all("div", class_="row ad-top-div")
 
         for ad in ads:
+            price_span = ad.find("span", class_="search-ad-price")
+            price = None
+
+            if price_span:
+                price_text = price_span.get_text(strip=True)
+                if price_text.lower() == "by agreement":
+                    price = "By agreement"
+                else:
+                    cleaned = price_text.replace("€", "").replace(",", "").strip()
+                    try:
+                        price = int(cleaned)
+                    except ValueError:
+                        price = None
+
             img_div = ad.find("div", class_="ad-image-div")
             nested_div = img_div.find("div", class_="ad-image") if img_div else None
             img_url = ""
@@ -118,6 +132,7 @@ with requests.Session() as session:
             ad_data = {}
             if ad_url:
                 ad_data = get_ad_details(session, ad_url)
+                ad_data["Price"] = price
                 ad_data["Image_URL"] = img_url
                 time.sleep(0.3)
 
