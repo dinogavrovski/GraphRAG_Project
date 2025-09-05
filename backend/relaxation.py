@@ -59,7 +59,6 @@ def run_nl_search(query: str, top_n=20):
 
     cypher_query = response.choices[0].message.content.strip()
 
-    # Run query on Neo4j
     with driver.session(database=NEO4J_DATABASE) as session:
         result = session.run(cypher_query)
         exact_matches = [record.data() for record in result]
