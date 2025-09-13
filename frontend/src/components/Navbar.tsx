@@ -17,18 +17,18 @@ export const Navbar = () => {
         </div>
         
         <div className="flex items-center space-x-3">
+          <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => window.location.href = '/login'}
+          >
+            Login
+          </Button>
           <Button 
             variant="outline"
-            className="border-white text-white hover:bg-white hover:text-primary"
+            className="border-white text-white hover:bg-gradient-card"
             onClick={() => window.location.href = '/register'}
           >
             Sign Up
-          </Button>
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => window.location.href = '/login'}
-          >
-            Login
           </Button>
         </div>
       </div>
