@@ -23,7 +23,11 @@ const CarMarketplaceContent = () => {
     
     try {
       const response = await searchCars(query);
+<<<<<<< Updated upstream
       setCars(response.results.exact_matches);
+=======
+      setCars([...response.results.exact_matches, ...response.results.similar_matches]);
+>>>>>>> Stashed changes
       console.log("setCars: ", response.results.exact_matches)
       setTotal(response.results.exact_matches.length + response.results.similar_matches.length);
       setHasSearched(true);
