@@ -1,20 +1,22 @@
 export interface Car {
-  id: string;
-  brandName: string;
-  model: string;
-  year: number;
-  imageUrl: string;
-  adUrl: string;
-  fuel: string;
-  kilometers: number;
-  gearbox: string;
-  carBody: string;
-  color: string;
-  registration: string;
-  registeredTo: string;
-  enginePower: string;
-  showClass: string;
-  price?: number;
+  "c": {
+    engine_power: string;
+    show_class: string;
+    color: string;
+    year: number;
+    fuel: string;
+    image_url: string;
+    link: string;
+    registered_to: string;
+    car_body: string;
+    kilometers: number;
+    model: string;
+    registration: string;
+    id: string;
+    gearbox: string;
+    brand_name: string;
+    price?: number | string;
+  }
 }
 
 export interface Results {

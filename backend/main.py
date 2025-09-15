@@ -11,6 +11,7 @@ from typing import Annotated
 from backend.userdb import engine, SessionLocal
 from backend import auth
 from backend.auth import get_current_user
+from pydantic import BaseModel
 
 load_dotenv()
 app = FastAPI(title="Car GraphRAG API")
@@ -37,6 +38,9 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
+class SearchRequest(BaseModel):
+    query: str
+
 @app.get("/", status_code=status.HTTP_200_OK)
 async def user(user: user_dependency, db:db_dependency):
     if user is None:
@@ -44,7 +48,7 @@ async def user(user: user_dependency, db:db_dependency):
     return {"User": user}
 
 @app.post("/api/search")
-def search(query: str = Body(...)):
+def search(request: SearchRequest):
     """
     :param: query: User's search query
     :return: Returns the search result of the GraphRAG model
@@ -52,6 +56,6 @@ def search(query: str = Body(...)):
     Translates a natural language search query into Cypher, executes it on the Neo4j database,
     and returns both exact and similar matches.
     """
-    results, cypher_query = run_nl_search(query)
+    results, cypher_query = run_nl_search(request.query)
     print({"query": cypher_query, "results": results})
     return {"query": cypher_query, "results": results}

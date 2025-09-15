@@ -18,13 +18,14 @@ const CarMarketplaceContent = () => {
     setIsLoading(true);
     setCurrentQuery(query);
     
-    // Start timer for minimum 3-second loading
+      // Start timer for minimum 3-second loading
     const startTime = Date.now();
     
     try {
       const response = await searchCars(query);
-      setCars(response.cars);
-      setTotal(response.total);
+      setCars(response.results.exact_matches);
+      console.log("setCars: ", response.results.exact_matches)
+      setTotal(response.results.exact_matches.length + response.results.similar_matches.length);
       setHasSearched(true);
       
       // Ensure minimum 3-second loading time

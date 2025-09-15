@@ -3,11 +3,12 @@ import { User, Bot, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CarResultCard } from "./CarResultCard";
+import {Car} from "@/types/car.ts";
 
 interface Message {
   id: string;
   content?: string;
-  cars?: unknown[];
+  cars?: Car[];
   isUser: boolean;
   timestamp: Date;
   type?: 'text' | 'cars';
@@ -15,7 +16,7 @@ interface Message {
 
 interface ChatInterfaceProps {
   query: string;
-  cars: unknown[];
+  cars: Car[];
   total: number;
   isLoading: boolean;
   onSearch: (query: string) => void;
@@ -114,12 +115,12 @@ export const ChatInterface = ({ query, cars, total, isLoading, onSearch }: ChatI
         content: `I found ${total} car${total !== 1 ? 's' : ''} that match your criteria. Here are the top results:`,
         cars: cars.slice(0, 6).map(car => ({
           ...car,
-          id: car.id || Date.now().toString(),
-          mileage: car.mileage || Math.floor(Math.random() * 100000) + 10000,
-          fuelType: car.fuelType || ['Gasoline', 'Diesel', 'Electric', 'Hybrid'][Math.floor(Math.random() * 4)],
-          transmission: car.transmission || ['Automatic', 'Manual'][Math.floor(Math.random() * 2)],
-          location: car.location || ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX'][Math.floor(Math.random() * 4)],
-          condition: car.condition || ['Excellent', 'Good', 'Fair'][Math.floor(Math.random() * 3)]
+          id: car.c.id || Date.now().toString(),
+          mileage: car.c.kilometers || Math.floor(Math.random() * 100000) + 10000,
+          fuelType: car.c.fuel || ['Gasoline', 'Diesel', 'Electric', 'Hybrid'][Math.floor(Math.random() * 4)],
+          transmission: car.c.gearbox || ['Automatic', 'Manual'][Math.floor(Math.random() * 2)],
+          location: ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX'][Math.floor(Math.random() * 4)],
+          condition: ['Excellent', 'Good', 'Fair'][Math.floor(Math.random() * 3)]
         })),
         isUser: false,
         timestamp: new Date(),
@@ -194,7 +195,7 @@ export const ChatInterface = ({ query, cars, total, isLoading, onSearch }: ChatI
                   {message.type === 'cars' && message.cars && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
                       {message.cars.map((car, index) => (
-                        <CarResultCard key={car.id || index} car={car} />
+                        <CarResultCard key={car.c.id || index} car={car.c} />
                       ))}
                     </div>
                   )}

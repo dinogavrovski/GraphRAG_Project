@@ -5,10 +5,10 @@ import { Heart, Eye, MapPin, Fuel, Gauge, Calendar } from "lucide-react";
 
 interface Car {
   id: string;
-  make: string;
+  make?: string;
   model: string;
   year: number;
-  price: number;
+  price?: number | string;
   mileage?: number;
   fuelType?: string;
   transmission?: string;
@@ -64,10 +64,10 @@ export const CarResultCard = ({ car }: CarResultCardProps) => {
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-bold text-lg text-foreground">
-              {car.year} {car.make} {car.model}
+              {car.year} {car.make || "make"} {car.model}
             </h3>
             <p className="text-2xl font-bold text-primary">
-              ${car.price.toLocaleString()}
+              ${typeof(car.price) == "number" ? car.price.toLocaleString() : car.price}
             </p>
           </div>
         </div>
