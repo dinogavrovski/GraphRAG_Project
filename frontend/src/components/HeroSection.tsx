@@ -2,10 +2,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-<<<<<<< Updated upstream
-=======
 import homeBackground from "@/assets/home_poster_1.jpg"
->>>>>>> Stashed changes
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
@@ -26,19 +23,11 @@ export const HeroSection = ({ onSearch, isLoading }: HeroSectionProps) => {
     <section className="relative min-h-screen flex items-center px-6" style={{ backgroundColor: '#212121' }}>
       {/* Background image area - ready for your image */}
       <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: '#2a2a2a' }}>
-<<<<<<< Updated upstream
-        <p className="text-gray-500 text-center">
-          Background Image Area
-          <br />
-          <span className="text-sm">Insert your image here</span>
-        </p>
-=======
          <img
              src={homeBackground}
              alt="Home Poster"
              className="w-full h-full object-cover brightness-50"
          />
->>>>>>> Stashed changes
       </div>
       
       <div className="relative z-10 max-w-4xl mx-auto w-full text-center">
@@ -53,23 +42,6 @@ export const HeroSection = ({ onSearch, isLoading }: HeroSectionProps) => {
             <div className="space-y-4 text-gray-300">
               <div className="flex items-center gap-3 justify-center">
                 <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<<<<<<< Updated upstream
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Smart natural language search</span>
-              </div>
-              <div className="flex items-center gap-3 justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Compare multiple listings instantly</span>
-              </div>
-              <div className="flex items-center gap-3 justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Find your perfect match</span>
-=======
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-white text-shadow-lg">Smart natural language search</span>
@@ -85,7 +57,6 @@ export const HeroSection = ({ onSearch, isLoading }: HeroSectionProps) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-white text-shadow-lg">Find your perfect match</span>
->>>>>>> Stashed changes
               </div>
             </div>
           </div>
