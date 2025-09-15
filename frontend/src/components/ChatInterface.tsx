@@ -7,7 +7,7 @@ import { CarResultCard } from "./CarResultCard";
 interface Message {
   id: string;
   content?: string;
-  cars?: any[];
+  cars?: unknown[];
   isUser: boolean;
   timestamp: Date;
   type?: 'text' | 'cars';
@@ -15,7 +15,7 @@ interface Message {
 
 interface ChatInterfaceProps {
   query: string;
-  cars: any[];
+  cars: unknown[];
   total: number;
   isLoading: boolean;
   onSearch: (query: string) => void;
@@ -27,35 +27,30 @@ const ThinkingAnimation = () => {
   
   useEffect(() => {
     const textPaths = [
-      // Business Professional
       [
         "Analyzing your request...",
         "Searching through our database...", 
         "Finding the perfect matches...",
         "Preparing your results..."
       ],
-      // Funny/Casual
       [
         "Hunting for your dream car...",
         "Sifting through endless car lots...",
         "Asking the cars nicely to show themselves...",
         "Found some beauties for you!"
       ],
-      // Technical
       [
         "Processing search parameters...",
         "Executing advanced algorithms...",
         "Cross-referencing vehicle data...",
         "Optimizing result relevance..."
       ],
-      // Playful
       [
         "Playing detective with car clues...",
         "Checking under every hood...",
         "Negotiating with stubborn databases...",
         "Polishing up the best finds..."
       ],
-      // Professional with Personality
       [
         "Decoding your car wishes...",
         "Consulting our automotive experts...",

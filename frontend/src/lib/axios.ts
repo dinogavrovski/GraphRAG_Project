@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
-  timeout: 10000,
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -58,23 +57,18 @@ axiosInstance.interceptors.response.use(
 
 // Utility functions for common HTTP methods
 export const api = {
-  // GET request
   get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     axiosInstance.get(url, config),
 
-  // POST request
   post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     axiosInstance.post(url, data, config),
 
-  // PUT request
   put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     axiosInstance.put(url, data, config),
 
-  // PATCH request
   patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     axiosInstance.patch(url, data, config),
 
-  // DELETE request
   delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     axiosInstance.delete(url, config),
 };

@@ -17,7 +17,12 @@ export interface Car {
   price?: number;
 }
 
+export interface Results {
+  exact_matches: Car[]
+  similar_matches: Car[]
+}
+
 export interface SearchResponse {
-  cars: Car[];
-  total: number;
+  results: Results
+  query: string
 }
