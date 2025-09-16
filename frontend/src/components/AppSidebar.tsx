@@ -16,16 +16,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const chatHistory = [
-  "Car rental pricing comparison",
-  "Best SUVs for families",
-  "Electric vehicle options",
-  "Luxury car features",
-  "Budget-friendly sedans",
-  "Sports car recommendations",
-  "Truck rental availability",
-  "Hybrid vehicle benefits",
-  "Car insurance tips",
-  "Maintenance cost analysis"
+  // "Car rental pricing comparison",
+  // "Best SUVs for families",
+  // "Electric vehicle options",
+  // "Luxury car features",
+  // "Budget-friendly sedans",
+  // "Sports car recommendations",
+  // "Truck rental availability",
+  // "Hybrid vehicle benefits",
+  // "Car insurance tips",
+  // "Maintenance cost analysis"
 ];
 
 export function AppSidebar() {
@@ -51,30 +51,26 @@ export function AppSidebar() {
           <Button 
             className="w-full bg-transparent hover:bg-sidebar-accent text-sidebar-foreground border border-sidebar-border justify-start"
             size="sm"
+            onClick={() => window.location.reload()}
           >
             <Plus className="h-4 w-4 mr-2" />
             {!isCollapsed && "New chat"}
           </Button>
         </div>
 
-        {/* Search and Library */}
+        {/* Search */}
         <div className="px-2 pb-2 space-y-1">
-          <SidebarMenuButton className="w-full hover:bg-sidebar-accent text-sidebar-accent-foreground justify-start">
-            <Search className="h-4 w-4" />
-            {!isCollapsed && <span className="ml-2">Search chats</span>}
-          </SidebarMenuButton>
-          
-          <SidebarMenuButton className="w-full hover:bg-sidebar-accent text-sidebar-accent-foreground justify-start">
-            <Library className="h-4 w-4" />
-            {!isCollapsed && <span className="ml-2">Library</span>}
-          </SidebarMenuButton>
+          {/*<SidebarMenuButton className="w-full hover:bg-sidebar-accent text-sidebar-accent-foreground justify-start">*/}
+          {/*  <Search className="h-4 w-4" />*/}
+          {/*  {!isCollapsed && <span className="ml-2">Search chats</span>}*/}
+          {/*</SidebarMenuButton>*/}
         </div>
 
         {/* Chat History */}
         {!isCollapsed && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-2 mb-2">
-              Today
+              {/*Today*/}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -98,7 +94,7 @@ export function AppSidebar() {
         {!isCollapsed && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-2 mb-2">
-              Yesterday
+              {/*Yesterday*/}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>

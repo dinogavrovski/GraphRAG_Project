@@ -13,7 +13,7 @@ export const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="text-xl font-bold">CarFinder</span>
+          <span className="text-xl font-bold">NajdiKola</span>
         </div>
         
         <div className="flex items-center space-x-3">
